@@ -11,6 +11,7 @@ _16DEC2020, Mid-Winter's Night Con_
 1. this talk focuses on four domains we can model (risk, threat, maturity, and (semi-)formal)
 1. from a  data-centered, control-centered position
 1. with a focus on practical techniques
+1. in a simple code style
 
 _do you or someone you know suffer from the following:_
 
@@ -306,6 +307,9 @@ record Risk {
 - graphing 
     - `def graph-risk risks:array[Risk] => GraphViz = ...`
     - `def graph-systems risks:array[Risk] => GraphViz = ...`
+- reporting
+    - `def risks->csv risks:array[Risk] => array[string] = ...`
+    - `def risks->html risks:array[Risk] => HTML = ...`
 - searching/stacking/grouping
     - `def find-risk risks:array[Risk] ... => Risk = ...`
     - `def stack-risks-by-system risks:array[Risk] ... => ...`
@@ -318,10 +322,130 @@ record Risk {
 
 # what are we modeling? risk
 
+- few different directions
+- `def calculate-impact reputation:int confidentiality:int integrity:int availability:int ... => int`
+- denser:
+
+```
+type Impact {
+    Very-Low
+    Low
+    Medium
+    High
+    Very-High
+}
+
+def calculate-impact reputation:Impact ... => Impact
+```
+
+- but can we do **even better**?
+- Let's look at `Data`
+
 ---
 
+# what are we modeling? risk
+
+- what could we encode here?
+  - is the data regulated?
+  - is the data Confidential/Restricted?
+  - is there a subscription restriction (e.g. TLP)?
+- encoding other information into `Data`, then offload 
+- the ergonomics of our model matter
+  - assumptions about what `impact` mean
+  - ease of understanding & calculation
+
+```
+type Data {
+    # ...
+    PublicData ...
+    ConfidentialData ...
+    RestrictedData ...
+    SPIIData ...
+}
+
+type Actor {
+    # ...
+}
+
+def  calculate-impact impacted-data:Data  actor:Actor  ...  => Impact = {
+    # ...
+}
+```
+
+---
+
+# what are we modeling? risk
+
+### an alternate direction
+
+- don't be afraid to enrich/contextualize data later
+- witness:
+
+```
+# an uncontextualized risk
+
+record SimpleRisk {
+    impact:int
+    likelihood:int
+    source:Component
+    target:Component
+    exposed: Data
+    short-description:string
+    description:string
+}
+
+type ContextualizedRisk {
+    SPIIRisk SimpleRisk Actor
+    ConfidentialRisk SimpleRisk Actor
+    # ...
+}
+```
+
+- choose what works best for your:
+  1. workflows
+  1. introspection
+  1. tinkering
+
+---
+
+# what are we modeling? risk
+
+### take aways, or, what in the actual fuck, loji?
+
+1. there are multiple paths forward for creating expressive models of risk
+1. we can make ergonomic choices about our data & enrich them deeply
+1. experimenting with and finding simple encoding mechanisms for our InfoSec programs
+   - we worked on `Data`, but `Component` level would work just as well
+
+---
 
 # what are we modeling? threat
+
+- let's take a step down the commonality chart
+- we want to capture the _potential_ for impact to a system
+- in the section on risk, we defined:
+  - `Data`
+  - `Component`
+  - `Impact`
+- what of those can we reuse to describe potential risk
+
+---
+
+# what are we modeling? threat
+
+- most of what I do for these is talk
+  - what does this component talk to?
+  - what data does it store?
+  - where does it store it?
+  - how does it talk to other components?
+  - who has access to it?
+- a large part of what we do is reverse [Architectural Decisions (ADs)](https://adr.github.io/) and find gaps
+- outputs?
+  - new architectural decision records
+  - new arcitecture diagrams
+  - new new relationship flows
+  - documenting component relationships
+  - documenting gaps
 
 ---
 
