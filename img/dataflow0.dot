@@ -1,0 +1,11 @@
+digraph G {
+  ur[label="user withdrawal request"]
+  w[label="withdrawal process", shape="box"]
+  br[label="bad withdrawal request"]
+  se[label="balance -= withdrawal amount"]
+  r[label="balance >= 0"]
+  ur->w[label="withdrawal <= balance"]
+  br->w[label="withdrawal > balance", color="red"]
+  w->se[label="side effects", color="lightgreen"]
+  w->r[label="results", color="lightgreen"]
+}

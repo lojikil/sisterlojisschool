@@ -210,6 +210,112 @@ the  system for everyone involved. We then used this to drive where our risks we
 
 ---
 
+# what are we modeling? practical techniques for the wayward youth
+
+- **how** you model is just as important as **what** you model?
+- we need to kill off "dead" models eventually:
+  - solely write-once Visio Diagrams (sorry Brian) 
+  - JML that is run once and never kept up to date
+  - excel sheets that just capture risks/threats and have no basis in futher reality
+- we need to move towards "living" models
+  - analyze them like data models
+  - yes you should be looking at your data models more frequently
+  - why are you all laughing?
+
+---
+
+# what are we modeling? practical techniques for the wayward youth
+
+### we neeed to move towards living models
+
+- [Hilel Wayne has done great work on modeling adversaries with TLA+](https://www.hillelwayne.com/post/adversaries/)
+- [Tamarin, a cryptographic proof system, allows users to model key compromise](https://tamarin-prover.github.io/manual/book/003_example.html)
+- [RedShiftZero has worked on automatic threat modeling in  a continuous fashion](https://www.redshiftzero.com/continuous-threat-modeling/)
+- [PyTM](https://github.com/izar/pytm) is a threat modeling framework, which [I've use to wrestle with complex architectures like k8s](https://github.com/trailofbits/audit-kubernetes/blob/master/notes/stefan.edwards/tm/dataflow/tm.py) 
+- In all of these cases:
+  - define a model
+  - wrestle with implications
+  - refine our models through testing
+
+---
+
+# what are we modeling? practical techniques for the wayward youth
+
+- can we do better?
+- I think Tamarin has the right idea
+  - idealized crypto systems
+  - concerned about usage & placement
+  - model checks show misusage of keys/crypto systems
+- Apply this idea to larger infosec
+- in a DSL
+
+---
+
+# what are we modeling? practical techniques for the wayward youth
+
+- obviously YMMV
+  - need to model something lower level
+  - need to model something in the same system that is non-idealized
+- use abstraction power
+  - give people general primitives they can work with
+  - build off of those 
+  - offer decent abstractions
+- trying a SWAG at one here
+  - because why not?
+  - I think about this often
+
+---
+
+# what are we modeling? risk
+
+- let's look at risk
+- probably the thing the most of us look at
+- what do we have:
+  - impact
+  - likelihood
+  - severity = impact x likelihood
+  - source?
+  - data?
+
+```
+type Data {
+    # ...
+}
+
+type Component {
+    # ...
+}
+
+record Risk {
+    impact:int
+    likelihood:int
+    source:Component
+    target:Component
+    exposed: Data
+    short-description:string
+    description:string
+}
+```
+
+---
+
+# what are we modeling? risk
+
+- for simple things, fine
+- we can easily define an API
+- graphing 
+    - `def graph-risk risks:array[Risk] => GraphViz = ...`
+    - `def graph-systems risks:array[Risk] => GraphViz = ...`
+- searching/stacking/grouping
+    - `def find-risk risks:array[Risk] ... => Risk = ...`
+    - `def stack-risks-by-system risks:array[Risk] ... => ...`
+- but can we do better?
+    - `impact` is manual, as is `likelihood`
+    - disconnected from `Data`
+    - what even *is*  `impact`? reputation? money? what?
+
+---
+
 # what are we modeling? risk
 
 ---
