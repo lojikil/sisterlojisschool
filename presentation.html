@@ -215,6 +215,17 @@ so really we do this all the time...
     1. all enforced by our modeling language
 - result: better design, more understanding
 
+```
+// original:
+// NOTE: balance should be great than withdrawl before execution
+
+// updated
+// @assignable balance
+// @requires balance >= 100
+// @requires withdrawal <= balance
+// @ensures balance == \old(balance) - withdrawal
+```
+
 ---
 
 # why model?
@@ -683,38 +694,84 @@ type Maturity {
     - we have many primitives here
     - we can certainly query the state of the world for things, and spot bugs
     - for example, connections that shouldn't happen
-- let's explore: what would light-weight methods look like for this process?
+- let's explore both:
+    - what would a definitional interpreter look like?
+    - what would light-weight methods look like for this process?
 
 ---
 
 # what are we modeling? (semi-)formal/correctness
 
-<!--
+- given types, match & execute on them
+- simulated table tops/war games
+- let's intro one other form, `match`:
+
+```
+def war-game risk:ContextualizedRisk component:Component controls:array[Controls] = {
+    match risk with 
+        (ContextualizedRisk.SPIIRisk r actor) given (not (restrict-risk r controls)) => ...
+        (ContextualizedRisk.ConfidentialRisk r actor) given ...
+    end
+}
+```
+- we can simulate lateral movement
+- perfect if you can lift ATT&CK as well
+
+---
+
+# what are we modeling? (semi-)formal/correctness
+
+- we can also add "symbolic" values for things that we don't know about, and discover light constraints
+
+```
+type Component {
+    # ...
+    SymbolicLB ...
+    SymbolicSG ...
+    SymbolicDAS ...
+    # ...
+}
+```
+- during our execution phase, we can fill in values
+
+```
+match connection with
+    # ...
+    (Connection.LBConnection ...) given (component-map-has? Component.LoadBalancer ...) => ...
+    (Connection.LBConnection ...) => (add-component! (Component.SymbolicLB ...) ...)
+end
+```
+- if we have an LB we know about, use it
+- if we don't, create an idealized LB, and start to define it
+
+---
+
+# what are we modeling? (semi-)formal/correctness
 
 - constraint-based approach
 - design by contract 
 
-talk about how we write code that processes the data that is encoded in these models.
-
-like:
-
 ```
-def foo x:Data y:Data => Result[Data] = {
-    when (every (is? x SPIIData) (is? y PublicData)) do {
-        Err "cannot mix public and SPII data"
+def add-data component:Component data:Data => Result[Data] = {
+    # really, ideally here carML would already support @pre & @post, but
+    # I haven't fixed the parser for those yet, so conditions & refinement types
+    # aren't there yet
+    when (every (is? data Data.SPIIData) (is? component Component.PublicNetworkEdge)) do {
+        (return (Result.Err "cannot mix public and SPII data"))
     }
     # ...
 }
-
-formal models needn't be _super formal_, and semi-formal models are better than _no models_
-
 ```
 
--->
+- formal models needn't be _super formal_, and semi-formal models are better than _no models_
+- but it's easier to represent systems as state machines of applications
+- and then see the results
 
 ---
 
 # what do we get?
+
+### or, wtaf have I been watching loji?
 
 - unified reporting
 - "thinking" language for your work
@@ -727,18 +784,33 @@ of course, it's like Kris Micinski said:
 
 - I think that's ok: work with what you need, extract to common languages
   - probably a 🌶 take there
+- in general, we need to wrestle with our models more, and be able to explore
+---
+
+# an aside: lifting vs extraction
+
+- most of what we do is _lift_ existing info into our representation
+    - add findings manually
+    - add threats manually
+    - parse IaC to define Components
+- the opposite is _extraction_
+    - I exact some information from the source systems
+    - I write something in a specification language
+    - I get the resulting language
 
 ---
 
-# Lifting vs Extraction
+# outro
+
+- a quick attempt at coding up some models
+- building on models should no longer be the domain of data scientists & formal modellers
+- code more and don't be afraid to generate code
 
 ---
 
-# Application
+# fin
 
----
-
-# Outro
+### thanks! Questions?
     </textarea>
     <script>
       var slideshow = remark.create({ highlightLanguage: 'javascript'});

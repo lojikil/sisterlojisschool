@@ -153,6 +153,17 @@ so really we do this all the time...
     1. all enforced by our modeling language
 - result: better design, more understanding
 
+```
+// original:
+// NOTE: balance should be great than withdrawl before execution
+
+// updated
+// @assignable balance
+// @requires balance >= 100
+// @requires withdrawal <= balance
+// @ensures balance == \old(balance) - withdrawal
+```
+
 ---
 
 # why model?
@@ -711,7 +722,7 @@ of course, it's like Kris Micinski said:
 
 - I think that's ok: work with what you need, extract to common languages
   - probably a 🌶 take there
-
+- in general, we need to wrestle with our models more, and be able to explore
 ---
 
 # an aside: lifting vs extraction
@@ -727,10 +738,14 @@ of course, it's like Kris Micinski said:
 
 ---
 
-# application
+# outro
 
-- so what can we _do_ with this?
+- a quick attempt at coding up some models
+- building on models should no longer be the domain of data scientists & formal modellers
+- code more and don't be afraid to generate code
 
 ---
 
-# outro
+# fin
+
+### thanks! Questions?
