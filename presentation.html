@@ -74,6 +74,8 @@ _16DEC2020, Mid-Winter's Night Con_
 1. from a  data-centered, control-centered position
 1. with a focus on practical techniques
 1. in a simple code style that could be used for a reasoning system
+1. _(bonus 🌶 takeway)_ we need to stop being afraid of DSLs and models for our own thinking purposes
+    - definitely former Lisper-thinking
 
 ---
 
@@ -681,21 +683,50 @@ type Maturity {
     - we have many primitives here
     - we can certainly query the state of the world for things, and spot bugs
     - for example, connections that shouldn't happen
+- let's explore: what would light-weight methods look like for this process?
+
+---
+
+# what are we modeling? (semi-)formal/correctness
+
+<!--
+
+- constraint-based approach
+- design by contract 
+
+talk about how we write code that processes the data that is encoded in these models.
+
+like:
+
+```
+def foo x:Data y:Data => Result[Data] = {
+    when (every (is? x SPIIData) (is? y PublicData)) do {
+        Err "cannot mix public and SPII data"
+    }
+    # ...
+}
+
+formal models needn't be _super formal_, and semi-formal models are better than _no models_
+
+```
+
+-->
 
 ---
 
 # what do we get?
 
-<!--
-
-- Unified reporting
+- unified reporting
 - "thinking" language for your work
 - a place to explore the implications of changes
 
-of course, it's like Kris Micinski said: eventually, when you code this much in a specification language,
-your programming language just becomes the specification language
+of course, it's like Kris Micinski said:
 
--->
+> _eventually, when you code this much in a specification language,_
+> _your programming language just becomes the specification language_
+
+- I think that's ok: work with what you need, extract to common languages
+  - probably a 🌶 take there
 
 ---
 
