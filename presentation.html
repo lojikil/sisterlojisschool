@@ -73,8 +73,11 @@ _16DEC2020, Mid-Winter's Night Con_
 1. this talk focuses on four domains we can model (risk, threat, maturity, and (semi-)formal)
 1. from a  data-centered, control-centered position
 1. with a focus on practical techniques
+1. in a simple code style that could be used for a reasoning system
 
-_do you or someone you know suffer from the following:_
+---
+
+# _do you or someone you know suffer from the following:_
 
 - inability to understand your infosec programs?
 - anxiety or concern about the state of your systems?
@@ -88,6 +91,8 @@ _do you or someone you know suffer from the following:_
 
 # outline
 
+1. take aways
+1. advert
 1. intros
 1. what is modeling?
 1. why model?
@@ -135,6 +140,23 @@ WARNING: Noo Yawk
 - surrounding areas: cryptography, infra, &c
 
 _publications: github.com/trailofbits/publications_
+
+---
+
+# background
+
+- this talk uses carML, a programming language I wrote
+  - Yeti + StandardML + OCaml + F# + Scala + Scheme + Sadness
+  - github.com/lojikil/carML
+- we will only use four notations:
+  - `type`, which introduces sum types/variants/tagged unions/case classes
+  - constructors for `type`, which introduce each of the variants/cases
+  - `record`, which introduces product types/structs/classes
+  - `def`, which defines a function
+- can compile these to C or Go as needed, right now
+- point: my exploration for what a framework would look like
+  - need data ingestion
+  - most of this code would be _produced_ by other tools
 
 ---
 
@@ -272,32 +294,412 @@ the  system for everyone involved. We then used this to drive where our risks we
 
 ---
 
-# what are we modeling? risk
+# what are we modeling? practical techniques for the wayward youth
+
+- **how** you model is just as important as **what** you model?
+- we need to kill off "dead" models eventually:
+  - solely write-once Visio Diagrams (sorry Brian) 
+  - JML that is run once and never kept up to date
+  - excel sheets that just capture risks/threats and have no basis in futher reality
+- we need to move towards "living" models
+  - analyze them like data models
+  - yes you should be looking at your data models more frequently
+  - why are you all laughing?
 
 ---
 
+# what are we modeling? practical techniques for the wayward youth
+
+### we neeed to move towards living models
+
+- [Hilel Wayne has done great work on modeling adversaries with TLA+](https://www.hillelwayne.com/post/adversaries/)
+- [Tamarin, a cryptographic proof system, allows users to model key compromise](https://tamarin-prover.github.io/manual/book/003_example.html)
+- [RedShiftZero has worked on automatic threat modeling in  a continuous fashion](https://www.redshiftzero.com/continuous-threat-modeling/)
+- [PyTM](https://github.com/izar/pytm) is a threat modeling framework, which [I've use to wrestle with complex architectures like k8s](https://github.com/trailofbits/audit-kubernetes/blob/master/notes/stefan.edwards/tm/dataflow/tm.py) 
+- In all of these cases:
+  - define a model
+  - wrestle with implications
+  - refine our models through testing
+
+---
+
+# what are we modeling? practical techniques for the wayward youth
+
+- can we do better?
+- I think Tamarin has the right idea
+  - idealized crypto systems
+  - concerned about usage & placement
+  - model checks show misusage of keys/crypto systems
+- Apply this idea to larger infosec
+- in a DSL
+
+---
+
+# what are we modeling? practical techniques for the wayward youth
+
+- obviously YMMV
+  - need to model something lower level
+  - need to model something in the same system that is non-idealized
+- use abstraction power
+  - give people general primitives they can work with
+  - build off of those 
+  - offer decent abstractions
+- trying a SWAG at one here
+  - because why not?
+  - I think about this often
+
+---
+
+# what are we modeling? risk
+
+- let's look at risk
+- probably the thing the most of us look at
+- what do we have:
+  - impact
+  - likelihood
+  - severity = impact x likelihood
+  - source?
+  - data?
+
+```
+type Data {
+    # ...
+}
+
+type Component {
+    # ...
+}
+
+record Risk {
+    impact:int
+    likelihood:int
+    source:Component
+    target:Component
+    exposed: Data
+    short-description:string
+    description:string
+}
+```
+
+---
+
+# what are we modeling? risk
+
+- for simple things, fine
+- we can easily define an API
+- graphing 
+    - `def graph-risk risks:array[Risk] => GraphViz = ...`
+    - `def graph-systems risks:array[Risk] => GraphViz = ...`
+- reporting
+    - `def risks->csv risks:array[Risk] => array[string] = ...`
+    - `def risks->html risks:array[Risk] => HTML = ...`
+- searching/stacking/grouping
+    - `def find-risk risks:array[Risk] ... => Risk = ...`
+    - `def stack-risks-by-system risks:array[Risk] ... => ...`
+- but can we do better?
+    - `impact` is manual, as is `likelihood`
+    - disconnected from `Data`
+    - what even *is*  `impact`? reputation? money? what?
+
+---
+
+# what are we modeling? risk
+
+- few different directions
+- `def calculate-impact reputation:int confidentiality:int integrity:int availability:int ... => int`
+- denser:
+
+```
+type Impact {
+    Very-Low
+    Low
+    Medium
+    High
+    Very-High
+}
+
+def calculate-impact reputation:Impact ... => Impact
+```
+
+- but can we do **even better**?
+- Let's look at `Data`
+
+---
+
+# what are we modeling? risk
+
+- what could we encode here?
+  - is the data regulated?
+  - is the data Confidential/Restricted?
+  - is there a subscription restriction (e.g. TLP)?
+- encoding other information into `Data`, then offload 
+- the ergonomics of our model matter
+  - assumptions about what `impact` mean
+  - ease of understanding & calculation
+
+```
+type Data {
+    # ...
+    PublicData ...
+    ConfidentialData ...
+    RestrictedData ...
+    SPIIData ...
+}
+
+type Actor {
+    # ...
+}
+
+def  calculate-impact impacted-data:Data  actor:Actor  ...  => Impact = {
+    # ...
+}
+```
+
+---
+
+# what are we modeling? risk
+
+### an alternate direction
+
+- don't be afraid to enrich/contextualize data later
+- witness:
+
+```
+# an uncontextualized risk
+
+record SimpleRisk {
+    impact:int
+    likelihood:int
+    source:Component
+    target:Component
+    exposed: Data
+    short-description:string
+    description:string
+}
+
+type ContextualizedRisk {
+    SPIIRisk SimpleRisk Actor
+    ConfidentialRisk SimpleRisk Actor
+    # ...
+}
+```
+
+- choose what works best for your:
+  1. workflows
+  1. introspection
+  1. tinkering
+
+---
+
+# what are we modeling? risk
+
+### take aways, or, what in the actual fuck, loji?
+
+1. there are multiple paths forward for creating expressive models of risk
+1. we can make ergonomic choices about our data & enrich them deeply
+1. experimenting with and finding simple encoding mechanisms for our InfoSec programs
+   - we worked on `Data`, but `Component` level would work just as well
+
+---
 
 # what are we modeling? threat
+
+- let's take a step down the commonality chart
+- we want to capture the _potential_ for impact to a system
+- in the section on risk, we defined:
+  - `Data`
+  - `Component`
+  - `Impact`
+- what of those can we reuse to describe potential risk
+
+---
+
+# what are we modeling? threat
+
+- most of what I do for these is talk
+  - what does this component talk to?
+  - what data does it store?
+  - where does it store it?
+  - how does it talk to other components?
+  - who has access to it?
+- a large part of what we do is reverse [Architectural Decisions (ADs)](https://adr.github.io/) and find gaps
+- outputs?
+  - new architectural decision records
+  - new arcitecture diagrams
+  - new new relationship flows
+  - documenting component relationships
+  - documenting gaps
+
+---
+
+# what are we modeling? threat
+
+```
+record SimpleThreat {
+    system-impact:Impact
+    organization-impact:Impact
+    discovery-likelihood:Likelihood
+    exploitation-likelihood:Likelihood
+    source:Component
+    target:Component
+    exposed:Data
+    short-description:string
+    description:string
+}
+```
+
+- all told, not that dissimilar from `Risk`
+  - some lessons learnt on `Impact` 
+  - similar for `Likelihood`
+  - some minor addendums such as "likelihood of discovery"
+  - but fairly similar
+- again, fine for simple threats
+  - source, sink what data
+
+---
+
+# what are we modeling? threat
+
+- in threat models, we mostly organize by component
+  - and often by control family
+- we also need to capture  mitigations, remediations...
+- let's flip this:
+
+```
+type Mitigation {
+    # ...
+}
+
+type Remediation {
+    # ...
+}
+
+type Threat {
+    MitigatedThreat Mitigation SimpleThreat
+    RemediatedThreat Remediation SimpleThreat
+    UnmanagedThreat SimpleThreat
+}
+```
+
+- we can normalize this of course
+  - mo efficiency, mo space
+- but generally, captures the controls/mitigations/remediations we'd need
+- can graph/report/respond/further model out of here
 
 ---
 
 # what are we modeling? maturity
 
+- let's keep this ball rolling, maturity
+- maturity is a (qualitative) measure of processes
+- many, many different models here:
+  - OWASP SAMM
+  - bSIMM
+  - PRISMA
+  - ...
+- I'd like to focus on two maturity models:
+  - Program Review for Information Security Assistance (PRISMA)
+  - Hunt Maturity Model (HMM)
+- And design our own
+
+---
+
+# what are we modeling? maturity
+
+- [PRISMA defines 5 maturity levels](https://csrc.nist.gov/Projects/Program-Review-for-Information-Security-Assistance/Security-Maturity-Levels)
+- [Hunt Maturity Model does as well](https://medium.com/@sqrrldata/the-cyber-hunting-maturity-model-6d506faa8ad5)
+- what we model for in maturity depends on where we sit in an org
+- me? I often need to model control, mitigation, remediation, &c. robustness
+- let's look at that
+
+```
+type Control {
+    # ...
+}
+
+type Mitigation {
+    # ...
+}
+
+type Remediation {
+    # ...
+}
+```
+
+---
+
+# what are we modeling? maturity
+
+- PRISMA and HMM have 5 "levels" of maturity
+  - PRISMA: Policies, Procedures, Implementation, Test, Integration 
+  - HMM: Initial, Minimal, Procedural, Innovative, Leading
+- capture how mature aspects of an organization is
+- at ToB, we rate control families on maturity:
+  - Strong, Satisfactory, Moderate, Weak, Missing, Not Applicable
+
+```
+type Maturity {
+    # carML doesn't yet support named constructor parameters
+    # but that be a nice additional here, or a `newtype` to
+    # rename strings there
+    #
+    # additionally, there could be some variance here; Satisfactory
+    # may be because the control isn't centrally located, or isn't
+    # well tested; we might want to add those notions here. Avoid
+    # using strings/ints/bools for things we can use the type system
+    Strong Control Component string
+    Satisfactory Control Component string
+    Moderate Control Component string
+    Weak Control Component string
+    Missing Control Component string
+    NotApplicable Control Component string
+}
+```
+
+- can do this for `Remediation` and `Mitigation` as well
+- can start to measure which components are weak, why, where, &c
+
 ---
 
 # an aside: maturity vs posture
+
+- most people run into this
+- maturity != posture
+- posture: a measure of how strong the app's defenses are
+- maturity: a measure of how well defined & robust those defenses are
+  - a candidate recently said "maturity is posture over time" which I think is great
+- when you're modeling things, make sure you understand **what** you're modeling
 
 ---
 
 # what are we modeling? (semi-)formal/correctness
 
+- there are two directions we can go with this
+- originally: I was going to talk about how with this definition tower, you can move many things
+    - great paper: [From definitional interpreters to symbolic executors](https://dl.acm.org/doi/10.1145/3358502.3361269)
+- but there's a further interesting thought here:
+    - we have many primitives here
+    - we can certainly query the state of the world for things, and spot bugs
+    - for example, connections that shouldn't happen
+
 ---
 
 # what do we get?
 
+<!--
+
+- Unified reporting
+- "thinking" language for your work
+- a place to explore the implications of changes
+
+of course, it's like Kris Micinski said: eventually, when you code this much in a specification language,
+your programming language just becomes the specification language
+
+-->
+
 ---
 
-# Lifting  vs Extraction
+# Lifting vs Extraction
 
 ---
 

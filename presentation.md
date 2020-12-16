@@ -92,6 +92,9 @@ _publications: github.com/trailofbits/publications_
   - `record`, which introduces product types/structs/classes
   - `def`, which defines a function
 - can compile these to C or Go as needed, right now
+- point: my exploration for what a framework would look like
+  - need data ingestion
+  - most of this code would be _produced_ by other tools
 
 ---
 
@@ -525,21 +528,116 @@ type Threat {
 
 # what are we modeling? maturity
 
+- let's keep this ball rolling, maturity
+- maturity is a (qualitative) measure of processes
+- many, many different models here:
+  - OWASP SAMM
+  - bSIMM
+  - PRISMA
+  - ...
+- I'd like to focus on two maturity models:
+  - Program Review for Information Security Assistance (PRISMA)
+  - Hunt Maturity Model (HMM)
+- And design our own
+
+---
+
+# what are we modeling? maturity
+
+- [PRISMA defines 5 maturity levels](https://csrc.nist.gov/Projects/Program-Review-for-Information-Security-Assistance/Security-Maturity-Levels)
+- [Hunt Maturity Model does as well](https://medium.com/@sqrrldata/the-cyber-hunting-maturity-model-6d506faa8ad5)
+- what we model for in maturity depends on where we sit in an org
+- me? I often need to model control, mitigation, remediation, &c. robustness
+- let's look at that
+
+```
+type Control {
+    # ...
+}
+
+type Mitigation {
+    # ...
+}
+
+type Remediation {
+    # ...
+}
+```
+
+---
+
+# what are we modeling? maturity
+
+- PRISMA and HMM have 5 "levels" of maturity
+  - PRISMA: Policies, Procedures, Implementation, Test, Integration 
+  - HMM: Initial, Minimal, Procedural, Innovative, Leading
+- capture how mature aspects of an organization is
+- at ToB, we rate control families on maturity:
+  - Strong, Satisfactory, Moderate, Weak, Missing, Not Applicable
+
+```
+type Maturity {
+    # carML doesn't yet support named constructor parameters
+    # but that be a nice additional here, or a `newtype` to
+    # rename strings there
+    #
+    # additionally, there could be some variance here; Satisfactory
+    # may be because the control isn't centrally located, or isn't
+    # well tested; we might want to add those notions here. Avoid
+    # using strings/ints/bools for things we can use the type system
+    Strong Control Component string
+    Satisfactory Control Component string
+    Moderate Control Component string
+    Weak Control Component string
+    Missing Control Component string
+    NotApplicable Control Component string
+}
+```
+
+- can do this for `Remediation` and `Mitigation` as well
+- can start to measure which components are weak, why, where, &c
+
 ---
 
 # an aside: maturity vs posture
+
+- most people run into this
+- maturity != posture
+- posture: a measure of how strong the app's defenses are
+- maturity: a measure of how well defined & robust those defenses are
+  - a candidate recently said "maturity is posture over time" which I think is great
+- when you're modeling things, make sure you understand **what** you're modeling
 
 ---
 
 # what are we modeling? (semi-)formal/correctness
 
+- there are two directions we can go with this
+- originally: I was going to talk about how with this definition tower, you can move many things
+    - great paper: [From definitional interpreters to symbolic executors](https://dl.acm.org/doi/10.1145/3358502.3361269)
+- but there's a further interesting thought here:
+    - we have many primitives here
+    - we can certainly query the state of the world for things, and spot bugs
+    - for example, connections that shouldn't happen
+
 ---
 
 # what do we get?
 
+<!--
+
+- Unified reporting
+- "thinking" language for your work
+- a place to explore the implications of changes
+
+of course, it's like Kris Micinski said: eventually, when you code this much in a specification language,
+your programming language just becomes the specification language
+
+-->
+
 ---
 
-# Lifting  vs Extraction
+# Lifting vs Extraction
 
 ---
 
