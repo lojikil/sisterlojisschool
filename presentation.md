@@ -11,9 +11,11 @@ _16DEC2020, Mid-Winter's Night Con_
 1. this talk focuses on four domains we can model (risk, threat, maturity, and (semi-)formal)
 1. from a  data-centered, control-centered position
 1. with a focus on practical techniques
-1. in a simple code style
+1. in a simple code style that could be used for a reasoning system
 
-_do you or someone you know suffer from the following:_
+---
+
+# _do you or someone you know suffer from the following:_
 
 - inability to understand your infosec programs?
 - anxiety or concern about the state of your systems?
@@ -27,6 +29,8 @@ _do you or someone you know suffer from the following:_
 
 # outline
 
+1. take aways
+1. advert
 1. intros
 1. what is modeling?
 1. why model?
@@ -74,6 +78,20 @@ WARNING: Noo Yawk
 - surrounding areas: cryptography, infra, &c
 
 _publications: github.com/trailofbits/publications_
+
+---
+
+# background
+
+- this talk uses carML, a programming language I wrote
+  - Yeti + StandardML + OCaml + F# + Scala + Scheme + Sadness
+  - github.com/lojikil/carML
+- we will only use four notations:
+  - `type`, which introduces sum types/variants/tagged unions/case classes
+  - constructors for `type`, which introduce each of the variants/cases
+  - `record`, which introduces product types/structs/classes
+  - `def`, which defines a function
+- can compile these to C or Go as needed, right now
 
 ---
 
@@ -446,6 +464,62 @@ type ContextualizedRisk {
   - new new relationship flows
   - documenting component relationships
   - documenting gaps
+
+---
+
+# what are we modeling? threat
+
+```
+record SimpleThreat {
+    system-impact:Impact
+    organization-impact:Impact
+    discovery-likelihood:Likelihood
+    exploitation-likelihood:Likelihood
+    source:Component
+    target:Component
+    exposed:Data
+    short-description:string
+    description:string
+}
+```
+
+- all told, not that dissimilar from `Risk`
+  - some lessons learnt on `Impact` 
+  - similar for `Likelihood`
+  - some minor addendums such as "likelihood of discovery"
+  - but fairly similar
+- again, fine for simple threats
+  - source, sink what data
+
+---
+
+# what are we modeling? threat
+
+- in threat models, we mostly organize by component
+  - and often by control family
+- we also need to capture  mitigations, remediations...
+- let's flip this:
+
+```
+type Mitigation {
+    # ...
+}
+
+type Remediation {
+    # ...
+}
+
+type Threat {
+    MitigatedThreat Mitigation SimpleThreat
+    RemediatedThreat Remediation SimpleThreat
+    UnmanagedThreat SimpleThreat
+}
+```
+
+- we can normalize this of course
+  - mo efficiency, mo space
+- but generally, captures the controls/mitigations/remediations we'd need
+- can graph/report/respond/further model out of here
 
 ---
 
